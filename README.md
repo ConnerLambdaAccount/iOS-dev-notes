@@ -1,5 +1,3 @@
-# iOS-dev-notes
-Notes I took for an iOS interview
 # iOS/Swift Notes
 ## @escaping
  - When a closure parameter is marked with `@escaping`, it means that closure will outlive the scope of the function you've passed the closure to.
@@ -16,7 +14,7 @@ Notes I took for an iOS interview
 - Serial queues execute one task at a time in the order they are added to the queue.
 - Concurrent queues execute tasks concurrently but tasks are still started in the order of the queue.
 - The **main dispatch queue** is a globally available serial queue that can execute code on the main thread either synchronously or asynchronously.
-- `.sync` will block the main thread until the task has finished, `.async` means this will happen on a background thread.
+- `.sync` will block the current thread until the task has finished, `.async` means that the thread will continue to execute code before the task has finished.
  
 ## async vs sync
 - When executing tasks **synchronously**, tasks are run in order of a FIFO queue, the first task will not be started until the second task has finished.
@@ -325,3 +323,31 @@ do {
 -- Inside the async code, run `.fulfill()` on the `XCTestExpectation` object.
 -- Wait for code to run, then check if expectation was fulfilled:
 --  `wait(for: [expectation], timeout: 10.0)
+Here's an example in code:
+```
+func testDownloadWebData() {
+    
+    // Create an expectation for a background download task.
+    let expectation = XCTestExpectation(description: "Download apple.com home page")
+    
+    // Create a URL for a web page to be downloaded.
+    let url = URL(string: "https://apple.com")!
+    
+    // Create a background task to download the web page.
+    let dataTask = URLSession.shared.dataTask(with: url) { (data, _, _) in
+        
+        // Make sure we downloaded some data.
+        XCTAssertNotNil(data, "No data was downloaded.")
+        
+        // Fulfill the expectation to indicate that the background task has finished successfully.
+        expectation.fulfill()
+        
+    }
+    
+    // Start the download task.
+    dataTask.resume()
+    
+    // Wait until the expectation is fulfilled, with a timeout of 10 seconds.
+    wait(for: [expectation], timeout: 10.0)
+}
+```
